@@ -10,4 +10,4 @@ Este proyecto implementa un **Árbol AVL** en Java, con métodos de inserción, 
 ## 🚀 Cómo ejecutar el programa
 1. Clonar el repositorio:
    ```sh
-   git clone https://github.com/tu-usuario/arbolesAVL.git
+   git clone https://github.com/NataliaWilsonr/arbolesAVL.git
