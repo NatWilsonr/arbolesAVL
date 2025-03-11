@@ -10,70 +10,109 @@ import arbolBinario.NodoABB;
  */
 public class ArbolAVL<T extends Comparable<T>> extends ArbolABB<T> {
 
+
     /**
      * Metodo para insertar un elemento en el arbol AVL.
-     * Realiza la insercion y luego revisa si el arbol necesita balanceo.
+     * Implementa una version iterativa similar al metodo en ArbolABB, pero
+     * agregando balanceo despues de la insercion.
      * @param elemento Elemento a insertar.
      */
     public void insertar(T elemento) {
-        raiz = insertarRec(raiz, elemento);
-    }
-    
-    private NodoABB<T> insertarRec(NodoABB<T> nodo, T elemento) {
-        // Insercion normal en ABB
-        if (nodo == null) {
-            return new NodoABB<>(elemento);
-        }
-        if (elemento.compareTo(nodo.getElemento()) < 0) {
-            nodo.setIzquierdo(insertarRec(nodo.getIzquierdo(), elemento));
-        } else if (elemento.compareTo(nodo.getElemento()) > 0) {
-            nodo.setDerecho(insertarRec(nodo.getDerecho(), elemento));
-        } else {
-            return nodo; // No se permiten duplicados
+        if (raiz == null) {
+            raiz = new NodoABB<>(elemento);
+            return;
         }
         
-        // Actualizar altura y balancear
-        return balancear(nodo);
+        NodoABB<T> actual = raiz;
+        NodoABB<T> padre = null;
+        
+        // Buscar la posicion donde insertar el nuevo nodo
+        while (actual != null) {
+            padre = actual;
+            if (elemento.compareTo(actual.getElemento()) < 0) {
+                actual = actual.getIzquierdo();
+            } else if (elemento.compareTo(actual.getElemento()) > 0) {
+                actual = actual.getDerecho();
+            } else {
+                return; // No se permiten duplicados
+            }
+        }
+        
+        // Crear el nuevo nodo e insertarlo en la posicion adecuada
+        NodoABB<T> nuevo = new NodoABB<>(elemento);
+        if (elemento.compareTo(padre.getElemento()) < 0) {
+            padre.setIzquierdo(nuevo);
+        } else {
+            padre.setDerecho(nuevo);
+        }
+        
+        // Aplicar balanceo desde el nodo donde se insertó
+        raiz = balancear(raiz);
     }
     
     /**
      * Metodo para eliminar un elemento del arbol AVL.
-     * Se realiza la eliminacion y luego se verifica si es necesario balancear.
+     * Implementa la version iterativa basada en el metodo de ArbolABB,
+     * pero con balanceo despues de la eliminacion.
      * @param elemento Elemento a eliminar.
      */
     public void eliminar(T elemento) {
-        raiz = eliminarRec(raiz, elemento);
-    }
-    
-    private NodoABB<T> eliminarRec(NodoABB<T> nodo, T elemento) {
-        if (nodo == null) {
-            return null;
-        }
+        NodoABB<T> actual = busca(raiz, elemento);
+        if (actual == null) return; // No se encontró el elemento
+
+        NodoABB<T> papa = actual.getPadre();
         
-        if (elemento.compareTo(nodo.getElemento()) < 0) {
-            nodo.setIzquierdo(eliminarRec(nodo.getIzquierdo(), elemento));
-        } else if (elemento.compareTo(nodo.getElemento()) > 0) {
-            nodo.setDerecho(eliminarRec(nodo.getDerecho(), elemento));
-        } else {
-            if (nodo.getIzquierdo() == null || nodo.getDerecho() == null) {
-                nodo = (nodo.getIzquierdo() != null) ? nodo.getIzquierdo() : nodo.getDerecho();
+        // Caso 1: Nodo hoja (sin hijos)
+        if (actual.getIzquierdo() == null && actual.getDerecho() == null) {
+            if (actual == raiz) {
+                raiz = null;
+            } else if (papa != null) {
+                if (papa.getIzquierdo() == actual) {
+                    papa.setIzquierdo(null);
+                } else {
+                    papa.setDerecho(null);
+                }
+            }
+        } 
+        // Caso 2: Nodo con un solo hijo
+        else if (actual.getIzquierdo() == null || actual.getDerecho() == null) {
+            NodoABB<T> hijo = (actual.getIzquierdo() != null) ? actual.getIzquierdo() : actual.getDerecho();
+            
+            if (actual == raiz) {
+                raiz = hijo;
+            } else if (papa != null) {
+                if (papa.getIzquierdo() == actual) {
+                    papa.setIzquierdo(hijo);
+                } else {
+                    papa.setDerecho(hijo);
+                }
+            }
+            hijo.setPadre(papa);
+        } 
+        // Caso 3: Nodo con dos hijos
+        else {
+            NodoABB<T> sucesor = actual.getDerecho();
+            NodoABB<T> sucesorPapa = actual;
+            while (sucesor.getIzquierdo() != null) {
+                sucesorPapa = sucesor;
+                sucesor = sucesor.getIzquierdo();
+            }
+            
+            actual.setElemento(sucesor.getElemento());
+            
+            if (sucesorPapa.getIzquierdo() == sucesor) {
+                sucesorPapa.setIzquierdo(sucesor.getDerecho());
             } else {
-                NodoABB<T> sucesor = encontrarMinimo(nodo.getDerecho());
-                nodo.setElemento(sucesor.getElemento());
-                nodo.setDerecho(eliminarRec(nodo.getDerecho(), sucesor.getElemento()));
+                sucesorPapa.setDerecho(sucesor.getDerecho());
+            }
+            
+            if (sucesor.getDerecho() != null) {
+                sucesor.getDerecho().setPadre(sucesorPapa);
             }
         }
         
-        if (nodo == null) return null;
-        
-        return balancear(nodo);
-    }
-    
-    private NodoABB<T> encontrarMinimo(NodoABB<T> nodo) {
-        while (nodo.getIzquierdo() != null) {
-            nodo = nodo.getIzquierdo();
-        }
-        return nodo;
+        // Aplicar balanceo despues de la eliminacion
+        raiz = balancear(raiz);
     }
     
     /**
