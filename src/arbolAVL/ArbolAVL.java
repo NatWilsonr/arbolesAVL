@@ -2,6 +2,8 @@ package arbolAVL;
 
 import estructurasArbolABB.ArbolABB;
 import arbolBinario.NodoABB;
+import java.util.LinkedList;
+import java.util.Queue;
 
 /**
  * Clase que representa un Arbol AVL.
@@ -182,6 +184,32 @@ public class ArbolAVL<T extends Comparable<T>> extends ArbolABB<T> {
         nodo.setDerecho(nuevaRaiz.getIzquierdo());
         nuevaRaiz.setIzquierdo(nodo);
         return nuevaRaiz;
+    }
+    
+            public void imprimirPorNiveles() {
+        if (raiz == null) {
+            System.out.println("El arbol esta vacio.");
+            return;
+        }
+
+        Queue<NodoABB<T>> cola = new LinkedList<>();
+        cola.add(raiz);
+
+        while (!cola.isEmpty()) {
+            NodoABB<T> actual = cola.poll(); // Sacamos el nodo de la cola
+            int balance = calcularBalance(actual); // Calculamos el factor de equilibrio
+
+            // Imprimimos el elemento y su factor de equilibrio
+            System.out.println("Nodo: " + actual.getElemento() + " | Factor de equilibrio: " + balance);
+
+            // Agregamos los hijos a la cola si existen
+            if (actual.getIzquierdo() != null) {
+                cola.add(actual.getIzquierdo());
+            }
+            if (actual.getDerecho() != null) {
+                cola.add(actual.getDerecho());
+            }
+        }
     }
 }
 
